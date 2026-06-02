@@ -259,13 +259,25 @@ function proceed( conversionMap: Record< string, ReactElement > ): boolean {
 				return true;
 			}
 
-			// Otherwise we're nested and we have to close out the current
-			// block and add it as a innerBlock to the parent.
-			const stackTop = stack.pop();
-			const text = indoc.substr(
-				stackTop.prevOffset,
-				startOffset - stackTop.prevOffset
-			);
+			// Remove the most recent opening tag from the stack.
+         const stackTop = stack.pop();
+
+// If there is no matching opening tag, the input string
+// contains an unmatched closing tag (e.g. </code>).
+// Prevent the editor from crashing and stop processing.
+          if ( ! stackTop ) {
+            console.warn(
+          'createInterpolateElement: unmatched closing tag found.'
+          );
+         return false;
+       }
+
+// Extract the text between the opening and closing tags.
+const text = indoc.substr(
+    stackTop.prevOffset,
+    startOffset - stackTop.prevOffset
+);
+			
 			stackTop.children.push( text );
 			stackTop.prevOffset = startOffset + tokenLength;
 			const frame = createFrame(
